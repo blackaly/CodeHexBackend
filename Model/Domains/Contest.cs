@@ -11,6 +11,6 @@ namespace CodeHex.Model.Domains
         public DateTime StartDate { get; set; } 
         public DateTime EndDate { get; set; }
         [JsonIgnore]
-        public ICollection<Problem> Problems { get; set; }
+        public ICollection<Problem>? Problems { get; set; }
     }
 }

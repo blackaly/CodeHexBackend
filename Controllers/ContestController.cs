@@ -30,6 +30,29 @@ namespace CodeHex.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> CreateContestWithoutProblms(ContestDTO model)
+        {
+            if(!ModelState.IsValid) return BadRequest(ModelState);
+
+            var contest = new Contest()
+            {
+                ContestName = model.ContestName,
+                EndDate= model.EndDate,
+                StartDate= model.StartDate,
+            };
+
+            try
+            {
+                await _contestService.CreateContest(contest);
+                return Ok(contest);
+
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("WithProblems")]
         public async Task<IActionResult> CreateContest(ContestProblemsDTO dto)
         {
             if (ModelState.IsValid)
@@ -93,7 +116,6 @@ namespace CodeHex.Controllers
         }
 
         [HttpDelete]
-
         public async Task<IActionResult> DeleteContest(int id)
         {
             var obj = await _contestService.GetContestById(id);
