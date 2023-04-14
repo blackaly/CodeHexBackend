@@ -1,6 +1,7 @@
 ﻿using CodeHex.Model.Domains;
 using CodeHex.Model.DTOs;
 using CodeHex.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +13,12 @@ namespace CodeHex.Controllers
     {
 
         private readonly IProblemService _problemService;
+        private IWebHostEnvironment _webHostEnvironment;
 
-        public ProblemController(IProblemService problemService)
+        public ProblemController(IProblemService problemService, IWebHostEnvironment webHostEnvironment)
         {
             _problemService = problemService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet("ByContestId")]
@@ -28,7 +31,7 @@ namespace CodeHex.Controllers
         }
 
         [HttpPost("Problems")]
-        public async Task<IActionResult> CreateProblems(int contestId, List<ProblemDTO> model)
+        public async Task<IActionResult> CreateProblems(int contestId, [FromForm]List<ProblemDTO> model)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -37,6 +40,7 @@ namespace CodeHex.Controllers
 
             foreach(var a in model)
             {
+                var fakeProblem = Path.GetRandomFileName();
                 problems.Add(new Problem()
                 {
                     ContestId = contestId,
@@ -44,10 +48,19 @@ namespace CodeHex.Controllers
                     {
                         ExecutionTime = a.ExecutionTime,
                         MemoryLimit = a.MemoryLimit,
-                        ProblemDescription = a.ProblemDescription
+                        ProblemDescription = fakeProblem
                     },
                     ProblemName = a.ProblemName
                 });
+
+                if (!string.IsNullOrEmpty(a.ProblemDescription?.FileName))
+                {
+                    string dir = Path.Combine(_webHostEnvironment.WebRootPath, $"Uploads/{contestId}");
+                    Directory.CreateDirectory(dir);
+                    var path = Path.Combine(_webHostEnvironment.WebRootPath, $"Uploads/{contestId}", fakeProblem);
+                    using FileStream f = new FileStream(path, FileMode.Create);
+                    a.ProblemDescription.CopyTo(f);
+                }
             }
 
             try
@@ -66,6 +79,7 @@ namespace CodeHex.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            var fakeProblem = Path.GetRandomFileName();
 
             var problem = new Problem()
             {
@@ -74,12 +88,18 @@ namespace CodeHex.Controllers
                 {
                     ExecutionTime = model.ExecutionTime,
                     MemoryLimit = model.MemoryLimit,
-                    ProblemDescription = model.ProblemDescription
+                    ProblemDescription = fakeProblem
                 },
                 ProblemName = model.ProblemName
             };
 
-            
+            if (!string.IsNullOrEmpty(model.ProblemDescription?.FileName))
+            {
+                var path = Path.Combine(_webHostEnvironment.WebRootPath, $"Uploads/{contestId}", fakeProblem);
+                using FileStream f = new FileStream(path, FileMode.Create);
+                model.ProblemDescription.CopyTo(f);
+            }
+
 
             try
             {

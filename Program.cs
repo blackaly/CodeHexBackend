@@ -25,7 +25,10 @@ namespace CodeHex
 
             builder.Services.AddControllersWithViews().AddNewtonsoftJson(options => 
             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithOrigins());
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -38,6 +41,7 @@ namespace CodeHex
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            app.UseCors();
 
 
             app.MapControllers();

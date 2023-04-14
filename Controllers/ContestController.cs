@@ -1,6 +1,7 @@
 ﻿using CodeHex.Model.Domains;
 using CodeHex.Model.DTOs;
 using CodeHex.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -13,10 +14,12 @@ namespace CodeHex.Controllers
     public class ContestController : ControllerBase
     {
         private readonly IContestService _contestService;
+        private IWebHostEnvironment _webHostEnvironment;
 
-        public ContestController(IContestService contestService)
+        public ContestController(IContestService contestService, IWebHostEnvironment webHostEnvironment)
         {
             _contestService = contestService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -69,6 +72,7 @@ namespace CodeHex.Controllers
                 var problems = new List<Problem>();
 
                 foreach(var p in dto.Problems) {
+                    var fakeProblem = Path.GetRandomFileName();
                     problems.Add(new Problem()
                     {
                         ProblemName = p.ProblemName,
@@ -76,10 +80,17 @@ namespace CodeHex.Controllers
                         {
                             ExecutionTime= p.ExecutionTime,
                             MemoryLimit= p.MemoryLimit,
-                            ProblemDescription= p.ProblemDescription,
+                            ProblemDescription= fakeProblem,
                         }
                         
                     });
+
+                    if (!string.IsNullOrEmpty(p.ProblemDescription?.FileName))
+                    {
+                        var path = Path.Combine(_webHostEnvironment.WebRootPath, $"Uploads/{contest.Id}", fakeProblem);
+                        using FileStream f = new FileStream(path, FileMode.Create);
+                        p.ProblemDescription.CopyTo(f);
+                    }
                 }
 
                 contest.Problems = problems;

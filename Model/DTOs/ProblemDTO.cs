@@ -6,10 +6,8 @@ namespace CodeHex.Model.DTOs
     public class ProblemDTO
     {
         [MaxLength(100, ErrorMessage = "The max length of the problem is 100 character")]
-
         public string ProblemName { get; set; }
-        [Required(ErrorMessage = "Problem Statement is required")]
-        public string ProblemDescription { get; set; }
+        public IFormFile? ProblemDescription { get; set; }
         [Required(ErrorMessage = "Memory Limit is required")]
         public decimal MemoryLimit { get; set; }
         [Required(ErrorMessage = "Execution Time is required")]
